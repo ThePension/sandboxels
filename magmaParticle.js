@@ -9,6 +9,14 @@ class MagmaParticle extends SolidParticle {
     this.speed = 0.5; // Move only half the time (for a slow feel)
     this.heatConductivity = 0.1;
     this.specificHeat = 3.0; // "How hard is it to heat up"
+
+    this.updated = false; // Track if this particle has been updated
+    this.customBehaviors.push((grid, particle, other, direction) => {
+      // Skip some iterations to make the magma fall diagonally slower
+      if (direction === 'diagonal' && random() < 0.9) {
+        return true; // Skip this iteration
+      }
+    });
   }
 
   update(grid, dt) {

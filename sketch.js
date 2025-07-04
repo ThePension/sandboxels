@@ -44,7 +44,7 @@ function draw() {
   let mouseYGrid = Math.floor(mouseY / particleSize);
   let brushSize = parseInt(brushSizeInput.value) || 1; // Get brush size from input
   noFill();
-  stroke(0, 100); // Semi-transparent stroke for the brush
+  stroke(255, 200); // Semi-transparent stroke for the brush
   strokeWeight(1);
   rect(mouseXGrid * particleSize - brushSize * particleSize,
        mouseYGrid * particleSize - brushSize * particleSize,
