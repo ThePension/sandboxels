@@ -1,5 +1,5 @@
 // Class representing a sand particle
-class MagmaParticle extends SandParticle {
+class MagmaParticle extends SolidParticle {
   constructor(x, y) {
     super(x, y);
 

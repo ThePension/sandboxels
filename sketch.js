@@ -33,7 +33,7 @@ function draw() {
     handleParticleInteraction(x, y); // Ensure particles are added even if not dragged
   }
 
-  background(220);
+  background(0);
   updateGrid(deltaTime); // Update the grid state
   drawGrid();
 
