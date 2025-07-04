@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="https://cdn.jsdelivr.net/npm/p5@1.11.8/lib/p5.js"></script>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <meta charset="utf-8" />
+
+  </head>
+  <body>
+    <main>
+      <p id="temperature">Temp: </p>
+
+      <label for="particle-select">Choose a particle/tool:</label>
+      <select id="particle-select">
+        <option value="magma">Magma</option>
+        <option value="water">Water</option>
+        <option value="sand">Sand</option>
+        <option value="ice">Ice</option>
+        <option value="rock">Rock</option>
+        <option value="glass">Glass</option>
+        <option value="bedrock">Bedrock</option>
+        <option value="fire">Fire</option>
+        <option value="eraser">Eraser</option>
+        <option value="cooler">Cooler</option>
+        <option value="heater">Heater</option>
+
+      </select>
+
+      <!-- Brush size slider -->
+      <label for="brush-size">Brush Size:</label>
+      <input type="range" id="brush-size" min="1" max="20" value="3" />
+    </main>
+
+    <script src="particle.js"></script>
+    <script src="sandParticle.js"></script>
+    <script src="waterParticle.js"></script>
+    <script src="steamParticle.js"></script>
+    <script src="magmaParticle.js"></script>
+    <script src="iceParticle.js"></script>
+    <script src="fireParticle.js"></script>
+    <script src="rockParticle.js"></script>
+    <script src="glassParticle.js"></script>
+    <script src="airParticle.js"></script>
+    <script src="bedrockParticle.js"></script>
+    <script src="sketch.js"></script>
+
+  </body>
+</html>
