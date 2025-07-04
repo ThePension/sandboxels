@@ -33,13 +33,23 @@ function draw() {
     handleParticleInteraction(x, y); // Ensure particles are added even if not dragged
   }
 
-
   background(220);
   updateGrid(deltaTime); // Update the grid state
   drawGrid();
 
   updateTemperatureDisplay(); // Update temperature display continuously
 
+  // Draw a rectangle at the mouse position, based on the brush size
+  let mouseXGrid = Math.floor(mouseX / particleSize);
+  let mouseYGrid = Math.floor(mouseY / particleSize);
+  let brushSize = parseInt(brushSizeInput.value) || 1; // Get brush size from input
+  noFill();
+  stroke(0, 100); // Semi-transparent stroke for the brush
+  strokeWeight(1);
+  rect(mouseXGrid * particleSize - brushSize * particleSize,
+       mouseYGrid * particleSize - brushSize * particleSize,
+       (brushSize * 2 + 1) * particleSize,
+       (brushSize * 2 + 1) * particleSize);
 }
 
 function updateGrid(deltaTime) {
