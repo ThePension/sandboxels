@@ -1,5 +1,5 @@
 // Class representing a sand particle
-class MagmaParticle extends SolidParticle {
+class MagmaParticle extends FluidParticle {
   constructor(x, y) {
     super(x, y);
 
@@ -13,7 +13,7 @@ class MagmaParticle extends SolidParticle {
     this.updated = false; // Track if this particle has been updated
     this.customBehaviors.push((grid, particle, other, direction) => {
       // Skip some iterations to make the magma fall diagonally slower
-      if (direction === 'diagonal' && random() < 0.9) {
+      if ((direction === 'diagonal' || direction === 'side') && random() < 0.9) {
         return true; // Skip this iteration
       }
     });

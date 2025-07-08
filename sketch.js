@@ -114,6 +114,10 @@ function addParticle(x, y, type = "sand") {
         else if (type === "glass") {
           grid[ny][nx] = new GlassParticle(nx, ny);
         }
+        else if (type === "meltedGlass") {
+          grid[ny][nx] = new MeltedGlassParticle(nx, ny);
+          
+        }
         else if (type === "bedrock") {
           grid[ny][nx] = new BedrockParticle(nx, ny);
         }
@@ -223,6 +227,8 @@ function handleParticleInteraction(x, y) {
 
     } else if (selectedType === "glass") {
       addParticle(x, y, "glass");
+    } else if (selectedType === "meltedGlass") {
+      addParticle(x, y, "meltedGlass");
     } else if (selectedType === "bedrock") {
       addParticle(x, y, "bedrock");
     } else if (selectedType === "fire") {

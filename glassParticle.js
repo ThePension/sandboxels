@@ -9,6 +9,13 @@ class GlassParticle extends SolidParticle {
     this.updated = false;
     this.specificHeat = 0.8; // "How hard is it to heat up"
     this.heatConductivity = 0.05; // Very low heat conductivity for glass
+
+    this.movable = false; // Glass is solid and does not move on its own
+
+    // Custom behavior for glass particles when colliding with other particles
+    this.customBehaviors.push((grid, particle, otherParticle) => {
+      return true;
+    });
   }
 
   update(grid, dt) {
@@ -16,6 +23,13 @@ class GlassParticle extends SolidParticle {
 
     super.update(grid); // Call the base class update method
 
+    // If the glass is heated enough, it can turn into a fluid
+    if (this.temperature > 1700) { // && random() < 0.01) {
+      grid[this.y][this.x] = new MeltedGlassParticle(this.x, this.y);
+      return;
+    }
+
+    this.updated = true;
     this.updateColor();
   }
 
