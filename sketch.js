@@ -10,6 +10,103 @@ const selectElement = document.getElementById("particle-select");
 const brushSizeInput = document.getElementById("brush-size");
 const fpsLabel = document.getElementById("fps");
 
+// Export function, that can be used to export the grid state as json
+function exportGrid() {
+  const gridData = grid.map(row =>
+    row.map(particle =>
+      particle
+        ? {
+            type: particle.constructor.name,
+            x: particle.x,
+            y: particle.y,
+            temperature: particle.temperature ?? null,
+            col: particle.col?.levels ?? null, // p5.js color
+            extra: particle.toJSON ? particle.toJSON() : null
+          }
+        : null
+    )
+  );
+
+  const json = JSON.stringify(gridData, null, 2);
+  const blob = new Blob([json], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "grid_export.json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importGrid() {
+  const input = document.getElementById("import-input");
+  const file = input.files[0];
+
+  if (!file) {
+    alert("Please select a file first.");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function (event) {
+    try {
+      const jsonData = event.target.result;
+      const gridData = JSON.parse(jsonData);
+      const newGrid = [];
+
+      for (let y = 0; y < gridData.length; y++) {
+        newGrid[y] = [];
+        for (let x = 0; x < gridData[y].length; x++) {
+          const cell = gridData[y][x];
+          if (!cell) {
+            newGrid[y][x] = null;
+            continue;
+          }
+
+          const particle = particleFactory(cell.type, x, y, cell.extra);
+          if (particle) {
+            if (cell.temperature !== undefined) particle.temperature = cell.temperature;
+            if (cell.col) particle.col = color(...cell.col);
+            newGrid[y][x] = particle;
+          } else {
+            newGrid[y][x] = null;
+          }
+        }
+      }
+
+      grid = newGrid;
+    } catch (e) {
+      console.error("Error parsing JSON:", e);
+      alert("Invalid or corrupted file.");
+    }
+  };
+
+  reader.readAsText(file);
+}
+
+
+function particleFactory(type, x, y, extra) {
+  switch (type) {
+    case "SandParticle": return new SandParticle(x, y);
+    case "WaterParticle": return new WaterParticle(x, y);
+    case "SteamParticle": return new SteamParticle(x, y);
+    case "GlassParticle": return new GlassParticle(x, y);
+    case "FireParticle": return new FireParticle(x, y);
+    case "AirParticle": return new AirParticle(x, y);
+    case "DarkHoleParticle": return new DarkHoleParticle(x, y);
+    case "MagmaParticle": return new MagmaParticle(x, y);
+    case "IceParticle": return new IceParticle(x, y);
+    case "RockParticle": return new RockParticle(x, y);
+    case "MeltedGlassParticle": return new MeltedGlassParticle(x, y);
+    case "BedrockParticle": return new BedrockParticle(x, y);
+    // Add other particles here...
+    default: return null;
+  }
+}
+
+
 // Enum for particle types
 const ParticleType = {
   SAND: "sand",

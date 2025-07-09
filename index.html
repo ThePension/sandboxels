@@ -12,6 +12,15 @@
 
       <p id="fps">FPS: </p>
 
+      <!-- Export button that uses exportGrid function -->
+      <button id="export-button" onclick="exportGrid()">Export</button>
+
+      <!-- Import input for importing grid data -->
+      <input type="file" id="import-input" accept=".json" />
+
+      <!-- Import button that uses importGrid function -->
+      <button id="import-button" onclick="importGrid()">Import</button>      
+
       <label for="particle-select">Choose a particle/tool:</label>
       <select id="particle-select">
         <option value="magma">Magma</option>
