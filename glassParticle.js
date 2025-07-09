@@ -6,7 +6,6 @@ class GlassParticle extends SolidParticle {
 
     this.density = 1.0; // Higher density for rock
     this.temperature = 20;
-    this.updated = false;
     this.specificHeat = 0.8; // "How hard is it to heat up"
     this.heatConductivity = 0.05; // Very low heat conductivity for glass
 
@@ -19,17 +18,14 @@ class GlassParticle extends SolidParticle {
   }
 
   update(grid, dt) {
-    if (this.updated) return;
-
     super.update(grid); // Call the base class update method
 
     // If the glass is heated enough, it can turn into a fluid
-    if (this.temperature > 1700) { // && random() < 0.01) {
+    if (this.temperature > 1700) {
       grid[this.y][this.x] = new MeltedGlassParticle(this.x, this.y);
       return;
     }
 
-    this.updated = true;
     this.updateColor();
   }
 

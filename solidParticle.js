@@ -13,7 +13,8 @@ class SolidParticle extends Particle {
   }
 
   update(grid, dt) {
-    if (this.updated) return;
+    if (this.updated) return; // Skip if already updated this frame
+
     super.update(grid);
   
     const x = this.x;
@@ -22,27 +23,36 @@ class SolidParticle extends Particle {
     const gridW = grid[0].length;
   
     const tryInteraction = (targetX, targetY, direction) => {
-      const target = grid[targetY][targetX];
+      const target = grid[targetY]?.[targetX];
+    
+      // 1. Let this particle try reacting to the target
       for (let behavior of this.customBehaviors) {
-        if (behavior(grid, this, target, direction)) {
-          return true;
+        if (behavior(grid, this, target, direction)) return true;
+      }
+    
+      // 2. Let the target try reacting to this one (if it has behaviors)
+      if (target?.customBehaviors) {
+        for (let behavior of target.customBehaviors) {
+          if (behavior(grid, target, this, direction)) return true;
         }
       }
+    
       return false;
     };
 
     if (!this.movable) return;
+
   
     // 1. Try straight down
     if (y + 1 < gridH) {
-      if (grid[y + 1][x] === null) {
-        this.updatePosition(grid, x, y + 1);
+      if (tryInteraction(x, y + 1, 'down')) {
         return;
-      } else if (tryInteraction(x, y + 1, 'down')) {
-        return;
-      } else if (grid[y + 1][x] instanceof WaterParticle) {
-        this.swap(grid, grid[y + 1][x]);
-        return;
+      } else if (grid[y + 1][x] instanceof FluidParticle) {
+        if (grid[y + 1][x].density < this.density) {
+          // Only swap if the fluid is less dense
+          this.swap(grid, grid[y + 1][x]);
+          return;
+        }
       }
     }
   
@@ -55,18 +65,12 @@ class SolidParticle extends Particle {
       if (newX >= 0 && newX < gridW && newY < gridH) {
         const target = grid[newY][newX];
         if (tryInteraction(newX, newY, 'diagonal')) return;
-  
-        if (target === null) {
-          this.updatePosition(grid, newX, newY);
-          return;
-        } else if (target instanceof WaterParticle) {
+
+        if (target instanceof FluidParticle) { 
           this.swap(grid, target);
           return;
         }
       }
     }
-  
-    this.updated = true;
   }
-  
 }

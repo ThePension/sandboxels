@@ -16,9 +16,9 @@ class SandParticle extends SolidParticle {
           return true; // Skip this iteration
         }
 
-        if (random() > 0.95 && !particle.isWet) {
-          grid[particle.y + 1][particle.x] = null;
-          particle.updatePosition(grid, particle.x, particle.y + 1);
+        if (random() > 0.95 && !particle.isWet && grid[particle.y + 1]) {
+          // Swap the sand with water
+          this.swap(grid, grid[particle.y + 1][particle.x]);
           particle.col = color(random(100, 150), random(50, 100), random(0, 50));
           particle.isWet = true;
           return true;
@@ -28,8 +28,8 @@ class SandParticle extends SolidParticle {
         if (random() < 0.5) {
           const dx = random() < 0.5 ? -1 : 1; // Randomly choose left or right
           const newX = particle.x + dx;
-          if (newX >= 0 && newX < grid[0].length && grid[particle.y + 1][newX] === null) {
-            particle.updatePosition(grid, newX, particle.y + 1);
+          if (newX >= 0 && newX < grid[0].length && grid[particle.y + 1]?.[newX] === null) {
+            this.swap(grid, grid[particle.y + 1][newX]);
             return true;
           }
         }
@@ -40,8 +40,6 @@ class SandParticle extends SolidParticle {
   }
 
   update(grid, dt) {
-    if (this.updated) return;
-
     super.update(grid); // Call the base class update method
 
     // If the sand is heated enough, it can turn into glass
@@ -49,7 +47,5 @@ class SandParticle extends SolidParticle {
       grid[this.y][this.x] = new GlassParticle(this.x, this.y);
       return;
     }
-  
-    this.updated = true;
   }
 }

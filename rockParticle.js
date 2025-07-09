@@ -7,9 +7,9 @@ class RockParticle extends SolidParticle {
     this.col = color(random(100, 150), random(100, 150), random(100, 150));
     this.density = 2.5; // Higher density for rock
     this.temperature = 20;
-    this.updated = false;
     this.heatConductivity = 0.07;
     this.specificHeat = 1.0; // "How hard is it to heat up"
+    this.movable = true;
 
     this.customBehaviors.push((grid, particle, other, direction) => {
       if (other instanceof WaterParticle && direction === 'down') {
@@ -22,8 +22,8 @@ class RockParticle extends SolidParticle {
         if (random() < 0.1) {
           const dx = random() < 0.5 ? -1 : 1; // Randomly choose left or right
           const newX = particle.x + dx;
-          if (newX >= 0 && newX < grid[0].length && grid[particle.y + 1][newX] === null) {
-            particle.updatePosition(grid, newX, particle.y + 1);
+          if (newX >= 0 && newX < grid[0].length && grid[particle.y + 1]?.[newX] === null) {
+            this.swap(grid, grid[particle.y + 1][newX]);
             return true;
           }
         }
@@ -33,8 +33,6 @@ class RockParticle extends SolidParticle {
 }
 
   update(grid, dt) {
-    if (this.updated) return;
-
     super.update(grid); // Call the base class update method
 
     // If the rock is heated enough, it can turn into magma

@@ -12,77 +12,69 @@ class FluidParticle extends Particle {
   update(grid, dt) {
     if (this.updated) return;
   
-    super.update(grid); // Base logic: heat diffusion etc.
+    super.update(grid); // Base particle logic: heat diffusion etc.
   
     const x = this.x;
     const y = this.y;
     const gridHeight = grid.length;
     const gridWidth = grid[0].length;
   
-    // Utility to test custom behavior (like in solids)
+    // Utility for handling interactions between particles
     const tryInteraction = (targetX, targetY, direction) => {
       const target = grid[targetY]?.[targetX];
+      
+      // 1. This particle reacts to the target
       for (let behavior of this.customBehaviors) {
-        if (typeof behavior === 'function' && behavior(grid, this, target, direction)) {
-          return true;
+        if (behavior(grid, this, target, direction)) return true;
+      }
+  
+      // 2. The target reacts to this particle
+      if (target?.customBehaviors) {
+        for (let behavior of target.customBehaviors) {
+          if (behavior(grid, target, this, direction)) return true;
         }
       }
+  
       return false;
     };
   
-    // 1. Try to move straight down
-    if (y + 1 < gridHeight) {
-      if (grid[y + 1][x] === null) {
-        this.updatePosition(grid, x, y + 1);
-        this.updated = true;
-        return;
-      } else if (tryInteraction(x, y + 1, 'down')) {
-        this.updated = true;
-        return;
-      }
-    }
+    // Allow subclasses to override movement priority
+    const directions = this.getMovementDirections?.() || [
+      { dx: 0, dy: 1, dir: "down" },       // Down
+      { dx: -1, dy: 1, dir: "diagonal" },  // Down-left
+      { dx: 1, dy: 1, dir: "diagonal" },   // Down-right
+      { dx: -1, dy: 0, dir: "side" },      // Left
+      { dx: 1, dy: 0, dir: "side" }        // Right
+    ];
   
-    // 2. Try to move diagonally down
-    const dirs = [-1, 1];
-    this.shuffleArray(dirs);
+    // Try each movement direction in order
+    for (let { dx, dy, dir } of directions) {
+      const newX = x + dx;
+      const newY = y + dy;
   
-    for (let dir of dirs) {
-      const newX = x + dir;
-      const newY = y + 1;
-  
-      if (newX >= 0 && newX < gridWidth && newY < gridHeight) {
+      if (
+        newX >= 0 && newX < gridWidth &&
+        newY >= 0 && newY < gridHeight
+      ) {
         const target = grid[newY][newX];
   
-        if (target === null) {
+        if (target === null || target instanceof AirParticle) {
           this.updatePosition(grid, newX, newY);
-          this.updated = true;
           return;
-        } else if (tryInteraction(newX, newY, 'diagonal')) {
-          this.updated = true;
+        } else if (tryInteraction(newX, newY, dir)) {
           return;
+        } else if (target instanceof FluidParticle) {
+          // If the target is another fluid, swap positions
+          if (target.density < this.density) {
+            // Only swap if the target is less dense
+            this.swap(grid, target);
+            return;
+          }
         }
       }
     }
   
-    // 3. Try to move sideways
-    for (let dir of dirs) {
-      const newX = x + dir;
-  
-      if (newX >= 0 && newX < gridWidth) {
-        const target = grid[y][newX];
-  
-        if (target === null) {
-          this.updatePosition(grid, newX, y);
-          this.updated = true;
-          return;
-        } else if (tryInteraction(newX, y, 'side')) {
-          this.updated = true;
-          return;
-        }
-      }
-    }
-  
-    this.updated = true;
+    this.updated = true; // Mark as processed this frame
   }
   
 }

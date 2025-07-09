@@ -5,7 +5,6 @@ class Particle {
     this.y = y;
     this.density = density || 1; // Default density for sand
 
-    this.updated = false; // Flag to track if the particle has been updated
     this.col = col;
 
     this.temperature = 20; // Default temperature
@@ -14,6 +13,9 @@ class Particle {
     this.specificHeat = 1.0; // "How hard is it to heat up"
 
     this.movable = true; // Flag to indicate if the particle can move
+
+    this.updated = false; // Flag to indicate if the particle has been updated this frame
+    this.heatExchanged = false; // Flag to indicate if heat has been exchanged this frame
   }
 
   getHeatCapacity() {
@@ -29,11 +31,23 @@ class Particle {
   update(grid) {
     // To override in subclasses
 
+    if (this.updated) {
+      return; // Skip if already updated this frame
+    }
+
     // Cool down towards ambient temperature
     // let ambient = 20; // Ambient temperature
     // this.temperature = lerp(this.temperature, ambient, 0.0001); // slow decay
 
+    if (this.heatExchanged) {
+      // If heat has been exchanged, we can skip the rest of the update
+      this.updated = true;
+      return;
+    }
+
     this.diffuseHeat(grid); // Diffuse heat with neighbors
+
+    this.updated = true; // Mark as updated for this frame
   }
 
   shuffleArray(arr) {
@@ -62,11 +76,10 @@ class Particle {
   }
 
   updatePosition(grid, newX, newY) {
-    if (newX >= 0 && newX < grid[0].length && newY >= 0 && newY < grid.length) {
-      grid[newY][newX] = this;
-      grid[this.y][this.x] = null; // Replace current position with AirParticle
-      this.x = newX; // Update the particle's x position
-      this.y = newY; // Update the particle's y position
+    // Check other particle is air, swap
+    if (grid[newY][newX] instanceof AirParticle) {
+      this.swap(grid, grid[newY][newX]);
+      return;
     }
   }
 
@@ -78,10 +91,17 @@ class Particle {
       if (nx >= 0 && nx < grid[0].length && ny >= 0 && ny < grid.length) {
         let neighbor = grid[ny][nx];
         if (neighbor && neighbor instanceof Particle) {
+          // Exchange heat only if the temp difference is significant
+          if (neighbor.heatExchanged || Math.abs(this.temperature - neighbor.temperature) < 0.5) {
+            continue; // Skip if neighbor has already exchanged heat this frame
+          }
           this.exchangeHeatWith(neighbor);
+
+          neighbor.heatExchanged = true; // Mark neighbor as having exchanged heat
         }
       }
     }
+    this.heatExchanged = false;
   }
   
 
@@ -98,7 +118,5 @@ class Particle {
     // Update temperatures based on heat exchanged
     this.temperature -= Q / c1;
     neighbor.temperature += Q / c2;
-
-    // console.log(`Exchanged heat: ${Q}, New temperatures: ${this.temperature}, ${neighbor.temperature}`);
   }
 }

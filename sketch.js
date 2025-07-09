@@ -1,25 +1,41 @@
 let grid = [];
 
 const gridHeight = 120;
-const gridWidth = 200; // Size of the grid (100x100)
+const gridWidth = 150;
 
 let particleSize = 5; // Size of each sand particle
 
 const temperatureDisplay = document.getElementById("temperature");
 const selectElement = document.getElementById("particle-select");
 const brushSizeInput = document.getElementById("brush-size");
+const fpsLabel = document.getElementById("fps");
+
+// Enum for particle types
+const ParticleType = {
+  SAND: "sand",
+  WATER: "water",
+  MAGMA: "magma",
+  ICE: "ice",
+  ROCK: "rock",
+  GLASS: "glass",
+  MELTED_GLASS: "meltedGlass",
+  BEDROCK: "bedrock",
+  FIRE: "fire",
+  COOLER: "cooler",
+  ERASER: "eraser",
+  HEATER: "heater",
+  DARK_HOLE: "darkHole",
+};
 
 function setup() {
-  createCanvas(1000, 600);
+  createCanvas(750, 600);
 
   frameRate(30); // Set frame rate to 30 FPS
-
-  // particleSize = width / gridSize; // Adjust sand size based on grid size
 
   for (let i = 0; i < gridHeight; i++) {
     grid[i] = [];
     for (let j = 0; j < gridWidth; j++) {
-      grid[i][j] = null; // new AirParticle(j, i); // Initialize grid with AirParticles values
+      grid[i][j] = new AirParticle(j, i); // Initialize grid with AirParticles values
     }
   }
 }
@@ -39,10 +55,13 @@ function draw() {
 
   updateTemperatureDisplay(); // Update temperature display continuously
 
+  fpsLabel.innerText = `FPS: ${Math.round(frameRate())}`;
+
   // Draw a rectangle at the mouse position, based on the brush size
   let mouseXGrid = Math.floor(mouseX / particleSize);
   let mouseYGrid = Math.floor(mouseY / particleSize);
   let brushSize = parseInt(brushSizeInput.value) || 1; // Get brush size from input
+  
   noFill();
   stroke(255, 200); // Semi-transparent stroke for the brush
   strokeWeight(1);
@@ -69,60 +88,13 @@ function updateGrid(deltaTime) {
       }
     }
 
-    // Reset the updated flag for all particles
+    // Reset the updated flag for the next frame
     for (let y = 0; y < gridHeight; y++) {
       for (let x = 0; x < gridWidth; x++) {
         let particle = grid[y][x];
         if (particle) {
-          particle.updated = false; // Reset the updated flag
-        }
-      }
-    }
-  }
-}
-
-
-// Function to add sand at a specific position
-function addParticle(x, y, type = "sand") {
-  let brushSize = parseInt(brushSizeInput.value) || 1; // Get brush size from input
-  for (let i = -brushSize; i <= brushSize; i++) {
-    for (let j = -brushSize; j <= brushSize; j++) {
-      let nx = x + i;
-      let ny = y + j;
-      if (
-        nx >= 0 && nx < gridWidth &&
-        ny >= 0 && ny < gridHeight &&
-        grid[ny][nx] === null // Only add particles to empty cells
-      ) {
-        if (type === "sand") {
-          let randomColor = color(random(200, 255), random(150, 200), random(0, 50));
-          grid[ny][nx] = new SandParticle(nx, ny, randomColor);
-        }
-        else if (type === "water") {
-          let blue = color(50, 100, random(180, 255));
-          grid[ny][nx] = new WaterParticle(nx, ny, blue);
-        }
-        else if (type === "magma") {
-          grid[ny][nx] = new MagmaParticle(nx, ny);
-        }
-        else if (type === "ice") {
-          grid[ny][nx] = new IceParticle(nx, ny);
-        }
-        else if (type === "rock") {
-          grid[ny][nx] = new RockParticle(nx, ny);
-        }
-        else if (type === "glass") {
-          grid[ny][nx] = new GlassParticle(nx, ny);
-        }
-        else if (type === "meltedGlass") {
-          grid[ny][nx] = new MeltedGlassParticle(nx, ny);
-          
-        }
-        else if (type === "bedrock") {
-          grid[ny][nx] = new BedrockParticle(nx, ny);
-        }
-        else if (type === "fire") {
-          grid[ny][nx] = new FireParticle(nx, ny);
+          particle.updated = false; // Reset the updated flag for the next frame
+          particle.heatExchanged = false; // Reset heat exchanged flag for the next frame
         }
       }
     }
@@ -139,9 +111,9 @@ function eraseParticle(x, y) {
       if (
         nx >= 0 && nx < gridWidth &&
         ny >= 0 && ny < gridHeight &&
-        grid[ny][nx] !== null
+        !(grid[ny][nx] instanceof AirParticle) // Only erase if not already AirParticle
       ) {
-        grid[ny][nx] = null; // Replace with AirParticle
+        grid[ny][nx] = new AirParticle(nx, ny); // Replace with AirParticle
       }
     }
   }
@@ -188,6 +160,72 @@ function heatUpParticles(x, y) {
   }
 }
 
+// Factory function to create particles
+function createParticle(type, x, y) {
+  switch (type) {
+    case ParticleType.SAND:
+      return new SandParticle(x, y, color(random(200, 255), random(150, 200), random(0, 50)));
+    case ParticleType.WATER:
+      return new WaterParticle(x, y, color(50, 100, random(180, 255)));
+    case ParticleType.MAGMA:
+      return new MagmaParticle(x, y);
+    case ParticleType.ICE:
+      return new IceParticle(x, y);
+    case ParticleType.ROCK:
+      return new RockParticle(x, y);
+    case ParticleType.GLASS:
+      return new GlassParticle(x, y);
+    case ParticleType.MELTED_GLASS:
+      return new MeltedGlassParticle(x, y);
+    case ParticleType.BEDROCK:
+      return new BedrockParticle(x, y);
+    case ParticleType.FIRE:
+      return new FireParticle(x, y);
+    case ParticleType.DARK_HOLE:
+      return new DarkHoleParticle(x, y);
+    default:
+      return null;
+  }
+}
+
+// Function to add particles at a specific position
+function addParticle(x, y, type) {
+  let brushSize = parseInt(brushSizeInput.value) || 1; // Get brush size from input
+  for (let i = -brushSize; i <= brushSize; i++) {
+    for (let j = -brushSize; j <= brushSize; j++) {
+      let nx = x + i;
+      let ny = y + j;
+      if (
+        nx >= 0 && nx < gridWidth &&
+        ny >= 0 && ny < gridHeight &&
+        grid[ny][nx] instanceof AirParticle // Only add if the cell is empty
+      ) {
+        let particle = createParticle(type, nx, ny);
+        if (particle) {
+          grid[ny][nx] = particle;
+        }
+      }
+    }
+  }
+}
+
+// Function to handle particle interactions
+function handleParticleInteraction(x, y) {
+  if (x >= 0 && x < gridWidth && y >= 0 && y < gridHeight) {
+    let selectedType = selectElement.value;
+
+    if (selectedType === ParticleType.COOLER) {
+      coolDownParticles(x, y);
+    } else if (selectedType === ParticleType.ERASER) {
+      eraseParticle(x, y);
+    } else if (selectedType === ParticleType.HEATER) {
+      heatUpParticles(x, y);
+    } else {
+      addParticle(x, y, selectedType);
+    }
+  }
+}
+
 // Check mouse position and add sand
 let isMouseHeld = false;
 
@@ -208,39 +246,6 @@ function mousePressed() {
 
 function mouseReleased() {
   isMouseHeld = false;
-}
-
-function handleParticleInteraction(x, y) {
-  if (x >= 0 && x < gridWidth && y >= 0 && y < gridHeight) {
-    // Based on the selected particle type
-    let selectedType = selectElement.value;
-    if (selectedType === "sand") {
-      addParticle(x, y, "sand");
-    } else if (selectedType === "water") {
-      addParticle(x, y, "water");
-    } else if (selectedType === "magma") {
-      addParticle(x, y, "magma");
-    } else if (selectedType === "ice") {
-      addParticle(x, y, "ice");
-    } else if (selectedType === "rock") {
-      addParticle(x, y, "rock");
-
-    } else if (selectedType === "glass") {
-      addParticle(x, y, "glass");
-    } else if (selectedType === "meltedGlass") {
-      addParticle(x, y, "meltedGlass");
-    } else if (selectedType === "bedrock") {
-      addParticle(x, y, "bedrock");
-    } else if (selectedType === "fire") {
-      addParticle(x, y, "fire");
-    } else if (selectedType === "cooler") {
-      coolDownParticles(x, y);
-    } else if (selectedType === "eraser") {
-      eraseParticle(x, y);
-    } else if (selectedType === "heater") {
-      heatUpParticles(x, y);
-    }
-  }
 }
 
 // Function to display temperature at the top right corner, outside the grid
@@ -270,7 +275,7 @@ function drawGrid() {
 
       if (!particle) continue; // Skip empty cells
 
-      if (particle === null) {
+      if (particle === null || particle instanceof AirParticle) {
         continue;
       }
 

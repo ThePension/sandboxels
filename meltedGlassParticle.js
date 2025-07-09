@@ -10,7 +10,6 @@ class MeltedGlassParticle extends FluidParticle {
     this.heatConductivity = 0.1;
     this.specificHeat = 3.0; // "How hard is it to heat up"
 
-    this.updated = false; // Track if this particle has been updated
     this.customBehaviors.push((grid, particle, other, direction) => {
       // Skip some iterations to make the magma fall diagonally slower
       if ((direction === 'diagonal'|| direction === 'side') && random() < 0.9) {
@@ -20,18 +19,14 @@ class MeltedGlassParticle extends FluidParticle {
   }
 
   update(grid, dt) {
-    if (this.updated) return;
     
     super.update(grid); // Call the base class update method
 
     // If the melted class cools down enough, it turns into glass
     if (this.temperature < 800) {
       grid[this.y][this.x] = new GlassParticle(this.x, this.y);
-      this.updated = true;
       return;
     }
-
-    this.updated = true;
 
     this.updateColor();
   }
