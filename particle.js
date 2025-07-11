@@ -73,6 +73,9 @@ class Particle {
 
     grid[this.y][this.x] = this;
     grid[otherParticle.y][otherParticle.x] = otherParticle;
+
+    this.updated = true; // Mark as processed this frame
+    otherParticle.updated = true; // Mark the other particle as processed this frame
   }
 
   updatePosition(grid, newX, newY) {

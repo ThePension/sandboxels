@@ -46,7 +46,12 @@ class FluidParticle extends Particle {
       { dx: -1, dy: 0, dir: "side" },      // Left
       { dx: 1, dy: 0, dir: "side" }        // Right
     ];
+
+    // Shuffle directions to add randomness
+    this.shuffleArray(directions);
   
+    this.updated = true; // Mark as processed this frame
+
     // Try each movement direction in order
     for (let { dx, dy, dir } of directions) {
       const newX = x + dx;
@@ -75,6 +80,5 @@ class FluidParticle extends Particle {
     }
   
     this.updated = true; // Mark as processed this frame
-  }
-  
+  } 
 }
