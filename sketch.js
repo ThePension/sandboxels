@@ -101,6 +101,8 @@ function particleFactory(type, x, y, extra) {
     case "RockParticle": return new RockParticle(x, y);
     case "MeltedGlassParticle": return new MeltedGlassParticle(x, y);
     case "BedrockParticle": return new BedrockParticle(x, y);
+    case "RockParticleGenerator": return new RockParticleGenerator(x, y);
+
     // Add other particles here...
     default: return null;
   }
@@ -122,6 +124,7 @@ const ParticleType = {
   ERASER: "eraser",
   HEATER: "heater",
   DARK_HOLE: "darkHole",
+  WATER_GENERATOR: "waterGenerator",
 };
 
 function setup() {
@@ -278,6 +281,8 @@ function createParticle(type, x, y) {
       return new BedrockParticle(x, y);
     case ParticleType.FIRE:
       return new FireParticle(x, y);
+    case ParticleType.WATER_GENERATOR:
+      return new ParticleGenerator(x, y, WaterParticle);
     case ParticleType.DARK_HOLE:
       return new DarkHoleParticle(x, y);
     default:
@@ -298,6 +303,7 @@ function addParticle(x, y, type) {
         grid[ny][nx] instanceof AirParticle // Only add if the cell is empty
       ) {
         let particle = createParticle(type, nx, ny);
+        console.log(`Adding particle of type ${particle} at (${nx}, ${ny})`);
         if (particle) {
           grid[ny][nx] = particle;
         }

@@ -66,7 +66,8 @@ class SolidParticle extends Particle {
         const target = grid[newY][newX];
         if (tryInteraction(newX, newY, 'diagonal')) return;
 
-        if (target instanceof FluidParticle) { 
+        if (target instanceof FluidParticle && target.density < this.density) {
+          // Only swap if the fluid is less dense
           this.swap(grid, target);
           return;
         }
